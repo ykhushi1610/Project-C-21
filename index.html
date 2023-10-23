@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Infinite Runner Game</title>
+    <style>
+      body {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas" width="400" height="200"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="tip" style="display: none">Tip: Jump only when the red block is too near!!</div>
+    <div id="hurray" style="display: none"></div>
+    <button id="startButton">Start Game</button>
+    <button id="restartButton" style="display: none">Restart Game</button>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let playerX = 50;
+      let playerY = canvas.height - 30;
+      const playerWidth = 20;
+      const playerHeight = 20;
+      let jumping = false;
+      let jumpHeight = 70;
+      const gravity = 2;
+
+      let obstacleX = canvas.width;
+      const obstacleWidth = 20;
+      const obstacleHeight = 20;
+      const obstacleSpeed = 2;
+
+      let gameOver = true;
+      let score = 0;
+      const scoreDisplay = document.getElementById("score");
+      const tipDisplay = document.getElementById("tip");
+      const hurrayDisplay = document.getElementById("hurray");
+
+      const startButton = document.getElementById("startButton");
+      const restartButton = document.getElementById("restartButton");
+
+      startButton.addEventListener("click", startGame);
+      restartButton.addEventListener("click", restartGame);
+
+      function startGame() {
+        startButton.style.display = "none";
+        restartButton.style.display = "none";
+        tipDisplay.style.display = "block";
+        gameOver = false;
+        score = 0;
+        scoreDisplay.innerText = "Score: " + score;
+        gameLoop();
+      }
+
+      function gameLoop() {
+        if (!gameOver) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "blue";
+          ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+
+          ctx.fillStyle = "red";
+          ctx.fillRect(obstacleX, canvas.height - obstacleHeight, obstacleWidth, obstacleHeight);
+
+          obstacleX -= obstacleSpeed;
+
+          if (
+            playerX + playerWidth > obstacleX &&
+            playerX < obstacleX + obstacleWidth &&
+            playerY + playerHeight > canvas.height - obstacleHeight
+          ) {
+            gameOver = true;
+            tipDisplay.style.display = "none";
+            alert("Game Over! Your Score: " + score);
+            restartButton.style.display = "block";
+          }
+
+          if (playerX > obstacleX + obstacleWidth) {
+            score++;
+            scoreDisplay.innerText = "Score: " + score;
+            obstacleX = canvas.width + Math.floor(Math.random() * 200);
+            tipDisplay.style.display = "block";
+
+            // Check if the player's score is a multiple of 10
+            if (score % 10 === 0) {
+              displayHurrayMessage(score);
+            }
+          }
+
+          if (playerY < canvas.height - playerHeight && !jumping) {
+            playerY += gravity;
+          }
+
+          requestAnimationFrame(gameLoop);
+        }
+      }
+
+      function jump() {
+        if (!jumping && playerY === canvas.height - playerHeight) {
+          jumping = true;
+          playerY -= jumpHeight;
+          setTimeout(() => {
+            playerY += jumpHeight;
+            jumping = false;
+          }, 500);
+        }
+      }
+
+      function restartGame() {
+        playerX = 50;
+        playerY = canvas.height - 30;
+        obstacleX = canvas.width;
+        startButton.style.display = "block";
+        gameOver = true;
+        hurrayDisplay.style.display = "none";
+      }
+
+      function displayHurrayMessage(score) {
+        hurrayDisplay.innerText = `Hurray! You've reached ${score} points!`;
+        hurrayDisplay.style.display = "block";
+        setTimeout(() => {
+          hurrayDisplay.style.display = "none";
+        }, 3000); // Message disappears after 3 seconds
+      }
+
+      window.addEventListener("keydown", (event) => {
+        if ((event.key === " " || event.key === "Spacebar") && !jumping && !gameOver) {
+          jump();
+        }
+      });
+
+      gameLoop();
+    </script>
+  </body>
+</html>
